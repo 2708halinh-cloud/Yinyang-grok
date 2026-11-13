@@ -1,0 +1,54 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,520;9..144,640&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink: #10120f;
+  --color-panel: #191b16;
+  --color-panel-2: #21241c;
+  --color-line: #31352c;
+  --color-bone: #ebe6dc;
+  --color-mist: #9c978c;
+  --color-yang: #e0a15a;
+  --color-yin: #7f9e96;
+}
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  html {
+    background: var(--color-ink);
+    color: var(--color-bone);
+  }
+
+  body {
+    font-family: var(--font-mono);
+    text-wrap: pretty;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-yang) 35%, transparent);
+    color: var(--color-bone);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

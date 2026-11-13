@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>X-TiMe</title>
+<style>
+  html, body {
+    margin: 0;
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: #10120F;
+    color: #EBE6DC;
+  }
+  .wash, .frame, .stack { position: absolute; }
+  .wash {
+    width: 820px;
+    height: 820px;
+    border-radius: 50%;
+    filter: blur(8px);
+  }
+  .wash-yang {
+    left: -220px;
+    top: -260px;
+    background: radial-gradient(circle, rgba(224,161,90,0.28) 0%, rgba(224,161,90,0.08) 36%, transparent 68%);
+  }
+  .wash-yin {
+    right: -260px;
+    bottom: -300px;
+    background: radial-gradient(circle, rgba(127,158,150,0.30) 0%, rgba(127,158,150,0.08) 38%, transparent 70%);
+  }
+  .frame {
+    inset: 32px;
+    border: 1px solid rgba(156,151,140,0.32);
+  }
+  .stack {
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+  }
+  .eyebrow {
+    margin: 0 0 18px;
+    font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.42em;
+    text-transform: lowercase;
+    color: #7F9E96;
+    padding-left: 0.42em;
+  }
+  h1 {
+    margin: 0;
+    font-family: "Liberation Serif", "DejaVu Serif", serif;
+    font-weight: 700;
+    font-size: 148px;
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    color: #EBE6DC;
+  }
+  .slogan {
+    margin: 22px 0 0;
+    font-family: "Liberation Sans", "DejaVu Sans", sans-serif;
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: #9C978C;
+  }
+  .rule {
+    display: flex;
+    width: 168px;
+    height: 3px;
+    margin: 26px 0 28px;
+  }
+  .rule i:first-child { flex: 1; background: #E0A15A; }
+  .rule i:last-child { flex: 1; background: #7F9E96; }
+  svg { display: block; }
+</style>
+</head>
+<body>
+  <div class="wash wash-yang"></div>
+  <div class="wash wash-yin"></div>
+  <div class="frame"></div>
+  <div class="stack">
+    <p class="eyebrow">yinyang.adp</p>
+    <h1>X-TiMe</h1>
+    <p class="slogan">Don't infer, read the fact.</p>
+    <div class="rule"><i></i><i></i></div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="228" height="228" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="48" fill="#EBE6DC"/>
+      <path d="M50 2a48 48 0 0 1 0 96 24 24 0 0 1 0-48 24 24 0 0 0 0-48z" fill="#7F9E96"/>
+      <circle cx="50" cy="26" r="8" fill="#7F9E96"/>
+      <circle cx="50" cy="74" r="8" fill="#E0A15A"/>
+    </svg>
+  </div>
+</body>
+</html>

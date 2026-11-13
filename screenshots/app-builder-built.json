@@ -1,0 +1,38 @@
+{
+  "url": "http://127.0.0.1:8081/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "X-TiMe",
+      "hasCanvas": false,
+      "bodyTextLen": 1315,
+      "bodyTextHash": "f96963fa0a89e32c9ce5ad50dfa30f1e0bfbd15f9db63e2e1a4cda5569d5899a",
+      "bodyTextPrefix": "X-TiMe YINYANG.ADP Đừng suy diễn. Hãy tiếp nhận sự kiện. Thực th",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "X-TiMe",
+      "hasCanvas": false,
+      "bodyTextLen": 1261,
+      "bodyTextHash": "24b93a6bb32129bbe3fd9dc70a30560b4e9dc89888b9c29be3c9b13688cab1cf",
+      "bodyTextPrefix": "X-TiMe YINYANG.ADP Đừng suy diễn. Hãy tiếp nhận sự kiện. Thực th",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-built-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-built.json",
+  "divergesFromBaseline": false,
+  "baselineReasons": []
+}
