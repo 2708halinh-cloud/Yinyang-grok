@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { runSource } from "./engine.ts";
 import { SAMPLES } from "./samples.ts";
@@ -12,6 +13,35 @@ function sample(id: string): string {
 function codes(result: { diagnostics: { code: string }[] }): string[] {
   return result.diagnostics.map((d) => d.code);
 }
+
+test("README.adp names missing senses and does not invent readings", async () => {
+  const source = readFileSync(new URL("./readme.adp", import.meta.url), "utf8");
+  const result = await runSource(source);
+  assert.equal(result.ok, true);
+  assert.equal(result.proofs[0]?.phase, "NHU_CAU");
+  assert.equal(result.proofs[0]?.ketQua, null);
+  assert.equal(result.oppositions.length, 8);
+  const names = result.needs.map((need) => need.ten);
+  assert.deepEqual(names, ["tai_cpu", "ap_luc_ram", "nhiet_do_gpu", "ap_luc_dia", "kiem_ke_than_the", "DocDuongMay"]);
+  assert.equal(result.needs.every((need) => need.khongCho), true);
+  assert.equal(result.trace.some((event) => event.detail.includes("36")), false);
+});
+
+test("tiếng Việt có dấu chạy như từ không dấu", async () => {
+  const result = await runSource(sample("tiengviet"));
+  assert.equal(result.ok, true, codes(result).join(","));
+  assert.equal(result.proofs[0]?.phase, "DONE");
+  assert.equal(result.proofs[0]?.acceptedStamp, "STAMP_LIVE");
+  assert.equal(result.proofs[0]?.ketQuaLiteral, "38.2");
+});
+
+test("hồ sơ đối soát không được đóng vai sự kiện", async () => {
+  const result = await runSource(sample("longmach"));
+  assert.equal(result.ok, false);
+  assert.equal(result.proofs.length, 0);
+  assert.equal(result.needs.length, 0);
+  assert.ok(codes(result).includes("INFERENCE_RESULT"));
+});
 
 test("khớp pha seals STAMP_LIVE and readback", async () => {
   const result = await runSource(sample("khop"));

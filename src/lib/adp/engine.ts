@@ -109,7 +109,7 @@ export type Stmt =
   | { kind: "neu"; a: string; b: string; threshold: number; thresholdLiteral: string; body: Stmt[]; line: number }
   | { kind: "ghiNhan"; what: string; line: number }
   | { kind: "hoaGiai"; a: string; b: string; line: number }
-  | { kind: "nhuCau"; ten: string; line: number }
+  | { kind: "nhuCau"; ten: string; lyDo: string; line: number }
   | { kind: "khoaBang"; a: string; b: string; line: number }
   | { kind: "banSao"; a: string; b: string; line: number }
   | { kind: "baoLoi"; message: string; line: number }
@@ -201,6 +201,12 @@ export interface TraceEvent {
   detail: string;
 }
 
+export interface Opposition {
+  duong: string;
+  am: string;
+  quanHe: string;
+}
+
 export interface RunResult {
   ok: boolean;
   tokens: Token[];
@@ -212,6 +218,7 @@ export interface RunResult {
   proofs: VatChung[];
   corrections: CorrectionEntry[];
   needs: NhuCauItem[];
+  oppositions: Opposition[];
   agentId: string;
 }
 
@@ -245,13 +252,22 @@ const KEYWORDS: Record<string, TokenKind> = {
   LechPha: "LechPha",
   TaiTao: "TaiTao",
   TaoBanSaoLoi: "TaoBanSaoLoi",
+  HamBam: "SHA256",
+  Bam: "Hash",
+  DauSong: "STAMP_LIVE",
+  DauCu: "STAMP_OLD",
+  DauThu: "STAMP_BETA",
 };
 
+function foldToken(s: string): string {
+  return s.normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/g, "d").replace(/Đ/g, "D");
+}
+
 function isIdentStart(ch: string): boolean {
-  return /[A-Za-z_]/.test(ch);
+  return /[\p{L}_]/u.test(ch);
 }
 function isIdentPart(ch: string): boolean {
-  return /[A-Za-z0-9_]/.test(ch);
+  return /[\p{L}\p{N}_]/u.test(ch);
 }
 
 export function lex(source: string): { tokens: Token[]; diagnostics: Diagnostic[] } {
@@ -384,7 +400,7 @@ export function lex(source: string): { tokens: Token[]; diagnostics: Diagnostic[
         i += 1;
         col += 1;
       }
-      const kind = KEYWORDS[lexeme] ?? "IDENT";
+      const kind = KEYWORDS[foldToken(lexeme)] ?? "IDENT";
       push(kind, lexeme, sl, sc);
       continue;
     }
@@ -618,9 +634,11 @@ function parseStmt(p: Parser): Stmt | null {
   if (eat(p, "NhuCau")) {
     expect(p, "LPAREN");
     const ten = expect(p, "STRING");
+    let lyDo = "";
+    if (eat(p, "COMMA")) lyDo = expect(p, "STRING").lexeme;
     expect(p, "RPAREN");
     expectSemi(p);
-    return { kind: "nhuCau", ten: ten.lexeme, line: t.line };
+    return { kind: "nhuCau", ten: ten.lexeme, lyDo, line: t.line };
   }
   if (eat(p, "BaoLoi")) {
     expect(p, "LPAREN");
@@ -683,14 +701,14 @@ function parseProof(p: Parser, line: number): ProofSyntax {
       proof.ketQua = parseExpr(p);
     } else if (eat(p, "Hash")) {
       expect(p, "COLON");
-      if (!check(p, "SHA256")) err(p, peek(p), "PARSE", "Hash phải là SHA256(...).");
+      if (!check(p, "SHA256")) err(p, peek(p), "PARSE", "Băm phải là HàmBăm(...).");
       proof.hash = parseExpr(p);
     } else if (eat(p, "TrangThai")) {
       expect(p, "COLON");
       if (eat(p, "STAMP_LIVE")) proof.claim = "STAMP_LIVE";
       else if (eat(p, "STAMP_OLD")) proof.claim = "STAMP_OLD";
       else if (eat(p, "STAMP_BETA")) proof.claim = "STAMP_BETA";
-      else err(p, peek(p), "PARSE", "TrangThai của VatChung phải là STAMP_LIVE, STAMP_OLD hoặc STAMP_BETA.");
+      else err(p, peek(p), "PARSE", "TrạngThái của VậtChứng phải là DấuSống, DấuCũ hoặc DấuThử.");
     } else {
       err(p, peek(p), "PARSE", `Trường VatChung lạ: «${peek(p).lexeme || peek(p).kind}».`);
       break;
@@ -931,7 +949,7 @@ function checkHoa(local: Map<string, Sym>, a: string, b: string, line: number) {
 function checkProof(local: Map<string, Sym>, proof: ProofSyntax, referenced: Set<string>) {
   if (!proof.ketQua || (proof.ketQua.kind === "name" && proof.ketQua.name === "")) {
     pairErrors.push(
-      typeErr(proof.line, 1, "NAKED_RESULT", "VatChung thiếu KetQua là một tên ThucTai. Không trả kết quả suông, không trả hằng số trần."),
+      typeErr(proof.line, 1, "NAKED_RESULT", "VậtChứng thiếu KếtQuả là một tên ThựcTại. Không trả kết quả suông, không trả hằng số trần."),
     );
   } else if (proof.ketQua.kind === "name") {
     referenced.add(proof.ketQua.name);
@@ -944,23 +962,23 @@ function checkProof(local: Map<string, Sym>, proof: ProofSyntax, referenced: Set
           proof.line,
           1,
           "INFERENCE_RESULT",
-          `KetQua «${proof.ketQua.name}» là mô phỏng. Đừng suy diễn. Hãy trả về ThucTai — sự kiện đã đọc.`,
+          `KếtQuả «${proof.ketQua.name}» là mô phỏng. Đừng suy diễn. Hãy trả về ThựcTại — sự kiện đã đọc.`,
         ),
       );
     }
   }
   if (!proof.hash || proof.hash.kind !== "sha") {
-    pairErrors.push(typeErr(proof.line, 1, "PROOF_INCOMPLETE", "VatChung thiếu Hash: SHA256(...). Không có bằng chứng thì không có kết quả."));
+    pairErrors.push(typeErr(proof.line, 1, "PROOF_INCOMPLETE", "VậtChứng thiếu Băm: HàmBăm(...). Không có bằng chứng thì không có kết quả."));
   } else {
     for (const arg of proof.hash.args) {
       referenced.add(arg);
       if (!local.has(arg)) {
-        pairErrors.push(typeErr(proof.line, 1, "UNKNOWN_NAME", `SHA256 không thấy «${arg}».`));
+        pairErrors.push(typeErr(proof.line, 1, "UNKNOWN_NAME", `HàmBăm không thấy «${arg}».`));
       }
     }
   }
   if (!proof.claim) {
-    pairErrors.push(typeErr(proof.line, 1, "PROOF_INCOMPLETE", "VatChung thiếu TrangThai: STAMP_LIVE | STAMP_OLD | STAMP_BETA."));
+    pairErrors.push(typeErr(proof.line, 1, "PROOF_INCOMPLETE", "VậtChứng thiếu TrạngThái: DấuSống, DấuCũ hoặc DấuThử."));
   }
 }
 
@@ -1223,21 +1241,19 @@ async function interpret(program: Program, agentId: string): Promise<{
               literal: cb?.literal ?? "?",
             },
             lesson:
-              "Khóa cả hai cực. Lệch pha không bị xóa. Hệ thống nhận ra nhu cầu ThuHepLechPha — không chờ ai, không gọi là xong.",
+              `Cần thu hẹp lệch ${lech} về trong ngưỡng ${lastThreshold}, rồi tự readback.`,
           };
           corrections.push(entry);
           pushNeed(
             "ThuHepLechPha",
-            `Lệch ${lech} vượt ngưỡng ${lastThreshold}. Thiếu công cụ thu hẹp. Đây là nhu cầu của hệ thống.`,
+            `Cần công cụ thu hẹp lệch ${lech} về trong ngưỡng ${lastThreshold}. Xong thì tự readback.`,
           );
         } else if (stmt.kind === "nhuCau") {
           if (stmt.ten.startsWith("PheDuyet")) sealPast();
-          pushNeed(
-            stmt.ten,
-            stmt.ten.startsWith("PheDuyet")
-              ? "Cửa nguồn khóa không mở. Chỉ phát phiếu đối chiếu. Không giữ bí mật đường truyền."
-              : "Thiếu công cụ này. Hệ thống nhận ra đó là nhu cầu của chính nó.",
-          );
+          const fallback = stmt.ten.startsWith("PheDuyet")
+            ? "Cần phiếu đối chiếu do Director phê. Phiếu là cách vào. Nguồn khóa vẫn đóng."
+            : `Cần công cụ ${stmt.ten} để làm nốt việc đang dang dở.`;
+          pushNeed(stmt.ten, stmt.lyDo || fallback);
         } else if (stmt.kind === "baoLoi") {
           diagnostics.push({
             severity: "error",
@@ -1257,7 +1273,7 @@ async function interpret(program: Program, agentId: string): Promise<{
             detail: "Dừng để giữ sự thật. Phiên không bị xóa. Đây là điểm dừng có chủ đích, không phải crash.",
           });
         } else if (stmt.kind === "traVeOpen") {
-          pushNeed(stmt.message, "Trả về nhu cầu đã gọi tên. Không có trạng thái chờ.");
+          pushNeed(stmt.message, `Cần ${stmt.message}. Đây là việc hệ tự đòi, không phải trạng thái chờ.`);
           halted = true;
           proofEmitted = true;
           await emitProof(stmt.message, null, [], "STAMP_BETA");
@@ -1389,7 +1405,10 @@ function proofNames(proof: ProofSyntax): string[] {
   return [];
 }
 
+import { isCanon, runCanon } from "./canon.ts";
+
 export async function runSource(source: string): Promise<RunResult> {
+  if (isCanon(source)) return runCanon(source);
   pairErrors.length = 0;
   const lexed = lex(source);
   const parsed = parse(lexed.tokens, []);
@@ -1408,6 +1427,7 @@ export async function runSource(source: string): Promise<RunResult> {
       proofs: [],
       corrections: [],
       needs: [],
+      oppositions: [],
       agentId: "",
     };
   }
@@ -1431,6 +1451,7 @@ export async function runSource(source: string): Promise<RunResult> {
       proofs: [],
       corrections: [],
       needs: [],
+      oppositions: [],
       agentId: "",
     };
   }
@@ -1449,6 +1470,7 @@ export async function runSource(source: string): Promise<RunResult> {
     proofs: exec.proofs,
     corrections: exec.corrections,
     needs: exec.needs,
+    oppositions: [],
     agentId,
   };
 }

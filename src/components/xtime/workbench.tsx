@@ -17,17 +17,61 @@ import {
   type TraceEvent,
 } from "@/lib/adp/engine";
 import { appendCorrections, clearArchive, loadArchive, saveArchive, type LeverArchive } from "@/lib/adp/levers";
+import canonSource from "@/lib/adp/readme.adp?raw";
+import { DO_THI, LUAT, docLenh, type Vo } from "@/lib/adp/khuan";
 import { SAMPLES } from "@/lib/adp/samples";
 import { Taiji } from "@/components/xtime/mark";
+
+const ALL_SAMPLES = [
+  {
+    id: "readme",
+    label: "README.adp",
+    detail: "Nguồn trên Drive. Đọc trận và mặt đối lập. CẢM cần số máy thật mới tuyên.",
+    source: canonSource,
+  },
+  ...SAMPLES,
+];
 
 type Tab = "trace" | "token" | "kien";
 
 const PILLARS = [
   { k: "4.1", t: "Siêu tĩnh", d: "ThucTai không hóa MoPhong. Lỗi chết ở khai báo, không phải sau khi đã ghi sai." },
-  { k: "4.2", t: "Bất biến", d: "Khối đã xây là hằng. Muốn đổi thì TaiTao — bản cũ thành STAMP_OLD." },
+  { k: "4.2", t: "Bất biến", d: "Khối đã xây là hằng. Muốn đổi thì TáiTạo — bản cũ thành DấuCũ." },
   { k: "4.3", t: "Song ánh", d: "Có cả hai cực thì phải DoLech. Không trộn sự kiện với mô phỏng." },
-  { k: "4.4", t: "Vật chứng", d: "Mọi trả về là VatChung: kết quả, SHA-256, thời điểm, tác nhân." },
+  { k: "4.4", t: "Vật chứng", d: "Mọi trả về là VậtChứng: kết quả, hàm băm, thời điểm, tác nhân." },
 ];
+
+const LOI: Record<string, string> = {
+  LEX: "chữ lạ",
+  PARSE: "câu chưa đúng",
+  NO_ENTRY: "không có cửa vào",
+  EXEC_BAOLOI: "báo lỗi",
+  MISSING_RETURN: "hàm không trả vật chứng",
+  DUP_NAME: "trùng tên",
+  TAITAO_MISSING: "tái tạo mà chưa có khối",
+  UNKNOWN_NAME: "chưa khai báo",
+  CALL_UNKNOWN: "không có kiến trúc hoặc hàm",
+  POLARITY_MISMATCH: "lẫn cực",
+  NAKED_RESULT: "kết quả trần",
+  INFERENCE_RESULT: "lấy mô phỏng làm sự kiện",
+  PROOF_INCOMPLETE: "thiếu vật chứng",
+};
+
+function nhanLoi(code: string): string {
+  return LOI[code] ?? code;
+}
+
+function dau(stamp: string): string {
+  if (stamp === "STAMP_LIVE") return "DấuSống";
+  if (stamp === "STAMP_OLD") return "DấuCũ";
+  if (stamp === "STAMP_BETA") return "DấuThử";
+  if (stamp === "DONE") return "đã phong";
+  if (stamp === "NHU_CAU") return "nhu cầu";
+  if (stamp === "STOP") return "dừng";
+  if (stamp === "KHOP") return "khớp";
+  if (stamp === "LECH") return "lệch";
+  return stamp;
+}
 
 function when(iso: string): string {
   if (!iso) return "—";
@@ -37,8 +81,8 @@ function when(iso: string): string {
 }
 
 export function Workbench() {
-  const [source, setSource] = useState(SAMPLES[0]?.source ?? "");
-  const [sampleId, setSampleId] = useState(SAMPLES[0]?.id ?? "");
+  const [source, setSource] = useState(ALL_SAMPLES[0]?.source ?? "");
+  const [sampleId, setSampleId] = useState(ALL_SAMPLES[0]?.id ?? "");
   const [hydrated, setHydrated] = useState(false);
   const [archive, setArchive] = useState<LeverArchive | null>(null);
   const [result, setResult] = useState<RunResult | null>(null);
@@ -113,7 +157,7 @@ export function Workbench() {
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <h1 className="text-2xl leading-none text-bone">X-TiMe</h1>
-              <span className="font-mono text-xs tracking-widest text-mist uppercase">yinyang.adp</span>
+              <span className="font-mono text-xs tracking-widest text-mist">yinyang.adp · viết tiếng Việt</span>
             </div>
             <p className="mt-1 max-w-xl text-sm leading-snug text-mist">
               Đừng suy diễn. Hãy tiếp nhận sự kiện.
@@ -145,12 +189,12 @@ export function Workbench() {
           <p className="flex items-start gap-2 text-sm leading-relaxed text-yin">
             <Scale className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>
-              Nhu cầu — thiếu công cụ thì gọi tên nó. Không chờ ai. Nguồn khóa không mở.
+              Nhu cầu là việc hệ tự đòi. Gọi tên công cụ, rồi làm khi có nó.
             </span>
           </p>
 
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {SAMPLES.map((sample) => {
+            {ALL_SAMPLES.map((sample) => {
               const active = sample.id === sampleId;
               return (
                 <button
@@ -171,8 +215,8 @@ export function Workbench() {
               );
             })}
           </div>
-          {SAMPLES.find((sample) => sample.id === sampleId)?.detail ? (
-            <p className="text-sm text-mist">{SAMPLES.find((sample) => sample.id === sampleId)?.detail}</p>
+          {ALL_SAMPLES.find((sample) => sample.id === sampleId)?.detail ? (
+            <p className="text-sm text-mist">{ALL_SAMPLES.find((sample) => sample.id === sampleId)?.detail}</p>
           ) : null}
 
           <div className="overflow-hidden rounded-md border border-line bg-panel">
@@ -215,7 +259,7 @@ export function Workbench() {
           <div className="rounded-md border border-line bg-panel">
             <div className="flex gap-1 border-b border-line p-1" role="tablist">
               <TabButton active={tab === "trace"} onClick={() => setTab("trace")} label="Dấu vết" />
-              <TabButton active={tab === "token"} onClick={() => setTab("token")} label="Token" />
+              <TabButton active={tab === "token"} onClick={() => setTab("token")} label="Mảnh chữ" />
               <TabButton active={tab === "kien"} onClick={() => setTab("kien")} label="Kiến trúc" />
             </div>
             <div className="max-h-80 overflow-auto p-3">
@@ -232,7 +276,9 @@ export function Workbench() {
 
         <section className="flex min-w-0 flex-col gap-4">
           <StatusBanner result={result} blocked={blocked} phase={phase} />
+          <KhuanBoard />
           <NeedList needs={result?.needs ?? []} />
+          <OppositionList pairs={result?.oppositions ?? []} />
           <EarthBoard />
           <Provenance agentId={result?.agentId || "chưa thực thi"} />
           <PoleBoard cells={result?.cells ?? []} />
@@ -244,6 +290,74 @@ export function Workbench() {
           <LeverBoard archive={archive} onForget={forget} />
         </section>
       </main>
+    </div>
+  );
+}
+
+function KhuanBoard() {
+  const [vo, setVo] = useState<Vo>("linux");
+  const [enter, setEnter] = useState(true);
+  const [line, setLine] = useState("ll");
+  const [out, setOut] = useState(() => docLenh("ll", "linux", true));
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Khuôn 12 · dòng lệnh</h3>
+      <p className="mt-1 text-sm leading-relaxed text-mist">
+        Dương kiểm tra từng ký tự. Sai thì trả về Âm để sửa. Không giết phiên.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {(["linux", "alpine", "cmd", "termux"] as Vo[]).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setVo(item)}
+            className={
+              "min-h-11 rounded-md border px-3 text-sm " +
+              (vo === item ? "border-yang text-yang" : "border-line text-mist")
+            }
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+      <label className="mt-3 flex items-center gap-2 text-sm text-mist">
+        <input type="checkbox" checked={enter} onChange={(event) => setEnter(event.target.checked)} />
+        Đã nhấn Enter
+      </label>
+      <form
+        className="mt-2 flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setOut(docLenh(line, vo, enter));
+        }}
+      >
+        <input
+          value={line}
+          onChange={(event) => setLine(event.target.value)}
+          aria-label="Dòng lệnh"
+          className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-ink px-3 font-mono text-sm text-bone outline-none"
+        />
+        <button type="submit" className="min-h-11 rounded-md bg-yang px-3 text-sm text-ink">
+          Gõ
+        </button>
+      </form>
+      <p className={"mt-3 text-sm " + (out.ma === 0 ? "text-yang" : "text-yin")}>
+        Mã {out.ma} · cực {out.cuc} · {out.luat}
+      </p>
+      <p className="mt-1 text-sm leading-relaxed text-bone">{out.loi}</p>
+      {out.goiY ? <p className="mt-1 text-sm leading-relaxed text-mist">{out.goiY}</p> : null}
+      <p className="mt-3 text-xs leading-relaxed text-mist">
+        Đồ thị đã đưa: Nguyễn {DO_THI.nguyen}, Tiến {DO_THI.tien}, Đạt {DO_THI.dat}, tên {DO_THI.tongTen},{" "}
+        {DO_THI.ngay} → {DO_THI.duongDoi}. {DO_THI.nguon}
+      </p>
+      <ul className="mt-3 flex flex-col gap-2">
+        {LUAT.map((item) => (
+          <li key={item.so} className="text-sm">
+            <span className="text-yang">{item.so}. {item.ten}.</span>{" "}
+            <span className="text-mist">{item.tuChoi}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -282,7 +396,7 @@ function DiagnosticList({ result, fault }: { result: RunResult | null; fault: st
           }
         >
           <span className="font-mono text-xs text-yang">
-            {item.code} · dòng {item.line}
+            {nhanLoi(item.code)} · dòng {item.line}
           </span>
           <p className="mt-1 leading-relaxed text-bone">{item.message}</p>
         </li>
@@ -298,8 +412,8 @@ function NeedList({ needs }: { needs: RunResult["needs"] }) {
       {needs.map((need) => (
         <li key={need.id} className="rounded-md border border-yin/50 bg-panel px-3 py-3">
           <p className="font-mono text-xs tracking-widest text-yin uppercase">
-            {need.id} · không chờ
-            {need.khongMoKhoa ? " · cửa khóa" : ""}
+            {need.id} · cần {need.ten}
+            {need.khongMoKhoa ? " · bằng phiếu" : ""}
           </p>
           <h3 className="mt-1 text-lg text-bone">{need.ten}</h3>
           <p className="mt-1 text-sm leading-relaxed text-mist">{need.lyDo}</p>
@@ -310,23 +424,43 @@ function NeedList({ needs }: { needs: RunResult["needs"] }) {
 }
 
 const EARTH = [
-  { k: "Drive", v: "Đã đọc kho tạm và nguồn chạy: Có / Bán / Phi cấu trúc, Không gian, Mạng thần kinh, Thực thể." },
-  { k: "GitHub", v: "2708halinh-cloud/x-time-web. Sol có cầu nối, chưa có dấu niêm nguồn gốc." },
-  { k: "Ultra T0", v: "Khóa. Chỉ đối chiếu khi có phiếu. Bàn này không giữ đường truyền." },
-  { k: "Windows", v: "Chưa đọc được ổ nào từ đây. Không bịa dung lượng." },
-  { k: "Android", v: "Chưa có dụng cụ đọc máy. Nhu cầu, không phải cửa mở." },
-  { k: "Máy ảo", v: "Thấy thư mục DockerDesktopVMM trên Drive. Không coi đó là máy đang chạy." },
+  { k: "README.adp", v: "Đã đọc trận. Cần cảm biến máy thật để CẢM có số." },
+  { k: "Kho", v: "Đã thấy Có cấu trúc, Bán cấu trúc, Phi cấu trúc, Codex, DATA_LAKE." },
+  { k: "Nguồn chạy", v: "Đã thấy Không gian, Mạng Thần Kinh, Thực thể." },
+  { k: "Long mạch", v: "Hồ sơ đối soát là mô phỏng. Không được lên thành sự kiện." },
+  { k: "Drive", v: "Mới nhận tên hồ sơ. Tên không phải nội dung đã đối soát." },
+  { k: "Ultra T0", v: "Cần phiếu đối chiếu. Nguồn vẫn đóng." },
+  { k: "Windows", v: "Cần dụng cụ đếm ổ." },
+  { k: "Android", v: "Cần dụng cụ đọc máy." },
 ];
 
 function EarthBoard() {
   return (
     <div className="rounded-md border border-line bg-panel px-3 py-3">
-      <h3 className="text-lg text-bone">Thổ · đã chạm</h3>
+      <h3 className="text-lg text-bone">Thổ · chữ nhận được</h3>
       <ul className="mt-3 flex flex-col gap-2">
         {EARTH.map((row) => (
           <li key={row.k} className="text-sm">
             <span className="font-mono text-xs text-yang">{row.k}</span>
             <p className="mt-1 leading-relaxed text-mist">{row.v}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OppositionList({ pairs }: { pairs: RunResult["oppositions"] }) {
+  if (pairs.length === 0) return null;
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Mặt đối lập</h3>
+      <ul className="mt-3 flex flex-col gap-3">
+        {pairs.map((pair) => (
+          <li key={pair.duong + pair.am} className="text-sm">
+            <p className="text-yang">{pair.duong}</p>
+            <p className="text-yin">{pair.am}</p>
+            <p className="mt-1 text-xs text-mist">{pair.quanHe}</p>
           </li>
         ))}
       </ul>
@@ -351,15 +485,15 @@ function StatusBanner({
     detail = "Không chạy, không bịa vật chứng. Sửa khai báo rồi thực thi lại.";
     tone = "border-yang/50 text-yang";
   } else if (phase === "DONE") {
-    title = "DONE · sự kiện đã phong";
-    detail = "Song ánh trong ngưỡng. Readback khớp. Khối lên STAMP_LIVE.";
+    title = "Đã phong · sự kiện";
+    detail = "Song ánh trong ngưỡng. Đọc lại khớp. Khối lên DấuSống.";
     tone = "border-yang/50 text-yang";
   } else if (phase === "NHU_CAU") {
-    title = "NHU CẦU · đã gọi tên";
-    detail = "Không chờ ai. Thiếu công cụ nào thì đó là nhu cầu của hệ thống. Cửa khóa không mở.";
+    title = "Nhu cầu · hệ đang đòi";
+    detail = "Mỗi thẻ là một việc cần làm: tên công cụ, rồi làm khi có nó.";
     tone = "border-yin/60 text-yin";
   } else if (phase === "STOP") {
-    title = "STOP · dừng có chủ đích";
+    title = "Dừng · có chủ đích";
     detail = "Giai đoạn dừng để giữ sự thật. Vật chứng vẫn nằm đây.";
     tone = "border-line text-bone";
   } else if (result?.ok) {
@@ -380,7 +514,7 @@ function Provenance({ agentId }: { agentId: string }) {
       <article className="rounded-md border border-yang/40 bg-panel px-3 py-3">
         <p className="flex items-center gap-2 font-mono text-xs tracking-widest text-yang uppercase">
           <Shield className="size-3.5" aria-hidden="true" />
-          Director · Carbon
+          Người giữ nguồn
         </p>
         <h3 className="mt-2 text-lg text-bone">
           {DIRECTOR.name}
@@ -393,11 +527,11 @@ function Provenance({ agentId }: { agentId: string }) {
       <article className="rounded-md border border-yin/40 bg-panel px-3 py-3">
         <p className="flex items-center gap-2 font-mono text-xs tracking-widest text-yin uppercase">
           <Fingerprint className="size-3.5" aria-hidden="true" />
-          Agent · Silicon
+          Máy nhận và làm · Âm
         </p>
         <h3 className="mt-2 font-mono text-lg text-bone">{agentId}</h3>
         <p className="mt-1 text-xs leading-relaxed text-mist">
-          Thực thi I/O, nạp khối, tính hash. Không được nhận là tác giả cấu trúc.
+          Nhận, tính băm, trả vật chứng. Không được tự phong vai Dương, không được nhận là tác giả cấu trúc.
         </p>
       </article>
     </div>
@@ -410,8 +544,8 @@ function PoleBoard({ cells }: { cells: Cell[] }) {
   const am = cells.filter((cell) => cell.polarity === "MO_PHONG");
   return (
     <div className="grid gap-2 sm:grid-cols-2">
-      <PoleColumn title="Dương · ThucTai" tone="yang" cells={duong} />
-      <PoleColumn title="Âm · MoPhong" tone="yin" cells={am} />
+      <PoleColumn title="Dương · ThựcTại" tone="yang" cells={duong} />
+      <PoleColumn title="Âm · MôPhỏng" tone="yin" cells={am} />
     </div>
   );
 }
@@ -431,7 +565,7 @@ function PoleColumn({ title, tone, cells }: { title: string; tone: "yang" | "yin
             </div>
             <p className="mt-1 flex items-center gap-1 font-mono text-xs text-mist">
               {cell.frozen ? <Lock className="size-3" aria-hidden="true" /> : null}
-              {cell.stamp}
+              {dau(cell.stamp)}
               {cell.frozen ? " · khóa" : ""}
               {" · v"}
               {cell.version}
@@ -466,15 +600,15 @@ function ProofList({ proofs }: { proofs: RunResult["proofs"] }) {
                 (proof.phase === "NHU_CAU" ? "text-yin" : proof.phase === "DONE" ? "text-yang" : "text-mist")
               }
             >
-              {proof.phase}
+              {dau(proof.phase)}
             </span>
           </div>
           <dl className="mt-3 grid gap-2 text-sm">
             <Row k="Kết quả" v={proof.ketQuaLiteral} />
-            <Row k="Yêu cầu" v={proof.claimStamp} />
-            <Row k="Chấp nhận" v={proof.acceptedStamp} />
-            <Row k="Readback" v={proof.readback} />
-            <Row k="Data SHA-256" v={proof.dataHash} mono />
+            <Row k="Yêu cầu" v={dau(proof.claimStamp)} />
+            <Row k="Chấp nhận" v={dau(proof.acceptedStamp)} />
+            <Row k="Đọc lại" v={dau(proof.readback)} />
+            <Row k="Băm dữ liệu" v={proof.dataHash} mono />
             <Row k="Phong bì" v={proof.envelopeHash} mono />
             <Row k="Lúc" v={when(proof.timestamp)} />
           </dl>
@@ -605,7 +739,7 @@ function TraceList({ events }: { events: TraceEvent[] }) {
 
 function TokenList({ result }: { result: RunResult | null }) {
   const tokens = result?.tokens ?? [];
-  if (tokens.length === 0) return <p className="text-sm text-mist">Chưa tách token.</p>;
+  if (tokens.length === 0) return <p className="text-sm text-mist">Chưa tách mảnh chữ.</p>;
   return (
     <ul className="flex flex-col gap-1 font-mono text-xs">
       {tokens.slice(0, 240).map((token, index) => (

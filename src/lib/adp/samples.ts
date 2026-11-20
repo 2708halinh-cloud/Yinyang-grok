@@ -7,9 +7,55 @@ export interface Sample {
 
 export const SAMPLES: Sample[] = [
   {
+    id: "tiengviet",
+    label: "Tiếng Việt",
+    detail: "Viết có dấu. Không cần từ tiếng Anh. Chênh 0,2 trong ngưỡng thì phong DấuSống.",
+    source: `// Hà Linh viết tiếng Việt. Máy hiểu cả có dấu lẫn không dấu.
+KiếnTrúc "ThuNhan" {
+    NềnTảng ThựcTại cam = 38.2;
+    MôPhỏng Âm mo = 38.0;
+
+    Hàm Kiem() -> VậtChứng {
+        Nếu (ĐộLệch(cam, mo) > 0.5) {
+            GhiNhận(LệchPha);
+            NhuCầu("DocLaiCam", "Cần đọc lại cảm biến. Chênh quá nửa độ.");
+        }
+        TrảVề VậtChứng {
+            KếtQuả: cam,
+            Băm: HàmBăm(cam, mo),
+            TrạngThái: DấuSống
+        };
+    }
+}
+
+GiaoƯớc("ThuNhan").Kiem();
+`,
+  },
+  {
+    id: "longmach",
+    label: "Long mạch",
+    detail: "Hồ sơ đối soát là mô phỏng. Đưa nó làm sự kiện thì siêu tĩnh từ chối. Không có vật chứng.",
+    source: `// Hồ sơ đối soát mô hình không phải sự thật.
+// Số đường, mã blob, ngày bản đồ: đều là Âm cho đến khi nhận được byte.
+KienTruc "Sol_LongMach" {
+    MoPhong Am ho_so_doi_soat = 2;
+
+    Ham Doc() -> VatChung {
+        TraVe VatChung {
+            KetQua: ho_so_doi_soat,
+            Hash: SHA256(ho_so_doi_soat),
+            TrangThai: STAMP_LIVE
+        };
+    }
+}
+
+GiaoUoc("Sol_LongMach").Doc();
+`,
+  },
+  {
     id: "sol",
     label: "Sol",
-    detail: "Gói khai sinh, Canon, dự phòng, thiết bị đều có. Sol chưa niêm. Hệ thống gọi tên công cụ, không chờ.",
+    detail: "Gói khai sinh, Canon, dự phòng, thiết bị đều có. Cần niêm nguồn gốc Sol.",
     source: `// Sol chưa niêm nguồn gốc bất biến của chính nó.
 // Gói khai sinh, Canon Hòa-Linh, dự phòng, thiết bị: có.
 KienTruc "Sol_NguonGoc" {
@@ -39,7 +85,7 @@ GiaoUoc("Sol_NguonGoc").Niem();
   {
     id: "ultra",
     label: "Ultra T0",
-    detail: "Nguồn khóa từ tháng 5/2026. Đối chiếu chỉ phát phiếu. Cửa không mở.",
+    detail: "Cần phiếu đối chiếu nguồn khóa từ tháng 5/2026. Nguồn vẫn đóng.",
     source: `// Roots Lever Ultra T0 — STAMP_OLD, bất khả xâm phạm.
 // Bàn này không giữ đường truyền và không mở sẵn.
 KienTruc "Ultra_T0" {
@@ -65,7 +111,7 @@ GiaoUoc("Ultra_T0").DoiChieu();
   {
     id: "odia",
     label: "Ổ đĩa",
-    detail: "Bàn này đọc được 0 ổ. Không bịa dung lượng. Nhu cầu là công cụ đọc ổ.",
+    detail: "Cần dụng cụ đếm ổ. Bàn này chưa có số ổ nào.",
     source: `// Windows Roots Lever 0 — chưa có dụng cụ đếm ổ trong bàn này.
 KienTruc "Windows_Roots" {
     NenTang ThucTai so_o_doc_duoc = 0;
