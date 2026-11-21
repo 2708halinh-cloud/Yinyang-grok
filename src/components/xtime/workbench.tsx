@@ -19,6 +19,18 @@ import {
 import { appendCorrections, clearArchive, loadArchive, saveArchive, type LeverArchive } from "@/lib/adp/levers";
 import canonSource from "@/lib/adp/readme.adp?raw";
 import { DO_THI, LUAT, docLenh, type Vo } from "@/lib/adp/khuan";
+import {
+  batDau,
+  ghiDe,
+  niem,
+  taoGoc,
+  xep,
+  type DiemDung,
+  type Dong,
+  type KhoGoc,
+  type Lan,
+  type Niem,
+} from "@/lib/adp/trunghoa";
 import { SAMPLES } from "@/lib/adp/samples";
 import { Taiji } from "@/components/xtime/mark";
 
@@ -276,6 +288,7 @@ export function Workbench() {
 
         <section className="flex min-w-0 flex-col gap-4">
           <StatusBanner result={result} blocked={blocked} phase={phase} />
+          <TrungHoaBoard />
           <KhuanBoard />
           <NeedList needs={result?.needs ?? []} />
           <OppositionList pairs={result?.oppositions ?? []} />
@@ -290,6 +303,175 @@ export function Workbench() {
           <LeverBoard archive={archive} onForget={forget} />
         </section>
       </main>
+    </div>
+  );
+}
+
+const NHAN_LAN: Record<Lan, string> = {
+  loi: "Lời người",
+  tacNhan: "Dấu tác nhân",
+  dongHanh: "Dấu Sol / Minh / Xiang / Hòa / Mei",
+  congCu: "Kết quả công cụ",
+};
+
+function taiTep(ten: string, chu: string) {
+  const url = URL.createObjectURL(new Blob([chu], { type: "text/plain;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = ten;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function TrungHoaBoard() {
+  const [tho, setTho] = useState("Em: giữ ranh giới");
+  const [dong, setDong] = useState<Dong[]>([]);
+  const [diem, setDiem] = useState<DiemDung>({
+    mucTieuMo: "niêm hội thoại",
+    correctionMoiNhat: "không gộp vai",
+    nguonDangCo: "Yinyang-grok",
+    xungDot: [],
+  });
+  const [goi, setGoi] = useState<Niem | null>(null);
+  const [tuChoi, setTuChoi] = useState<string | null>(null);
+  const [kho, setKho] = useState<KhoGoc[] | null>(null);
+
+  useEffect(() => {
+    void taoGoc({
+      "MANIFEST.json": "{\"goc\":true,\"suaDe\":false}\n",
+      "SHA256SUMS.txt": "goc\n",
+      "READBACK_VERIFICATION.md": "Gốc chỉ đọc.\n",
+    }).then(setKho);
+  }, []);
+
+  const diemDong = batDau({
+    ...diem,
+    xungDot: [...diem.xungDot, ...dong.flatMap((tin) => tin.xungDot)],
+  });
+
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Trung Hòa · chặn trước</h3>
+      <p className="mt-1 text-sm leading-relaxed text-mist">
+        Mỗi lượt bắt từ điểm dừng gần nhất. Lời người, dấu máy, dấu Sol/Minh/Xiang/Hòa/Mei và kết quả công cụ không được trộn.
+      </p>
+      <ul className="mt-3 flex flex-col gap-1">
+        {diemDong.map((dongDiem) => (
+          <li key={dongDiem} className="text-sm text-bone">
+            {dongDiem}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {["Em: ", "Grok: ", "Sol: ", "Mei: ", "Công cụ: "].map((mau) => (
+          <button
+            key={mau}
+            type="button"
+            onClick={() => setTho(mau)}
+            className="min-h-11 rounded-md border border-line px-3 text-sm text-mist"
+          >
+            {mau.trim()}
+          </button>
+        ))}
+      </div>
+      <form
+        className="mt-2 flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const tin = xep(String(dong.length + 1), new Date().toISOString(), tho);
+          setDong((cu) => [...cu, tin]);
+          setTho("");
+        }}
+      >
+        <input
+          value={tho}
+          onChange={(event) => setTho(event.target.value)}
+          aria-label="Dòng cần xếp luồng"
+          placeholder="Em: …"
+          className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-ink px-3 text-sm text-bone outline-none"
+        />
+        <button type="submit" className="min-h-11 rounded-md bg-yang px-3 text-sm text-ink">
+          Xếp
+        </button>
+      </form>
+      <ul className="mt-3 flex flex-col gap-2">
+        {dong.map((tin) => (
+          <li key={tin.id} className="rounded-md border border-line px-2 py-2 text-sm">
+            <span className={tin.lan ? "text-yang" : "text-yin"}>
+              {tin.lan ? NHAN_LAN[tin.lan] : "Chưa xếp"}
+              {tin.ai ? ` · ${tin.ai}` : ""}
+            </span>
+            <p className="mt-1 whitespace-pre-wrap text-bone">{tin.chu}</p>
+            {tin.xungDot.map((muc) => (
+              <p key={muc} className="mt-1 text-yin">
+                {muc}
+              </p>
+            ))}
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="min-h-11 rounded-md bg-yang px-3 text-sm text-ink"
+          onClick={() => {
+            void niem(
+              dong,
+              { ...diem, xungDot: [...diem.xungDot, ...dong.flatMap((tin) => tin.xungDot)] },
+              new Date().toISOString(),
+            ).then(setGoi);
+          }}
+        >
+          Niêm
+        </button>
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-line px-3 text-sm text-bone"
+          onClick={() => {
+            if (!kho) return;
+            void ghiDe(kho, "MANIFEST.json", "{\"goc\":false}\n").then((ket) => {
+              setKho(ket.kho);
+              setTuChoi(ket.tuChoi);
+            });
+          }}
+        >
+          Thử ghi đè gốc
+        </button>
+      </div>
+      {tuChoi ? <p className="mt-2 text-sm text-yin">{tuChoi}</p> : null}
+      {goi ? (
+        <div className="mt-3 flex flex-col gap-2">
+          <p className="text-sm text-bone">
+            {goi.soTin} tin · thời gian {goi.thuTu === "dung" ? "đúng" : "lệch"} · đọc lại {goi.khop ? "khớp" : "lệch"}
+          </p>
+          {(
+            [
+              [goi.tenJson, goi.json],
+              [goi.tenManifest, goi.manifest],
+              [goi.tenCheckpoint, goi.checkpoint],
+              [goi.tenSums, goi.sums],
+              [goi.tenReadback, goi.readback],
+            ] as const
+          ).map(([ten, chu]) => (
+            <button
+              key={ten}
+              type="button"
+              onClick={() => taiTep(ten, chu)}
+              className="min-h-11 rounded-md border border-line px-3 text-left text-sm text-yang"
+            >
+              Tải {ten}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      <label className="mt-3 block text-sm text-mist">
+        Mục tiêu còn mở
+        <input
+          value={diem.mucTieuMo}
+          onChange={(event) => setDiem({ ...diem, mucTieuMo: event.target.value })}
+          className="mt-1 min-h-11 w-full rounded-md border border-line bg-ink px-3 text-sm text-bone outline-none"
+        />
+      </label>
     </div>
   );
 }
