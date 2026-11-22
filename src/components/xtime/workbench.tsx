@@ -32,6 +32,7 @@ import {
   type Niem,
 } from "@/lib/adp/trunghoa";
 import { SAMPLES } from "@/lib/adp/samples";
+import { BA, CONG_CU, NEO_CHU, SO_DANG_KY, TANG, giuNhip, temMay, thuXoa, type O } from "@/lib/adp/training";
 import { Taiji } from "@/components/xtime/mark";
 
 const ALL_SAMPLES = [
@@ -289,6 +290,7 @@ export function Workbench() {
         <section className="flex min-w-0 flex-col gap-4">
           <StatusBanner result={result} blocked={blocked} phase={phase} />
           <TrungHoaBoard />
+          <TrainingBoard />
           <KhuanBoard />
           <NeedList needs={result?.needs ?? []} />
           <OppositionList pairs={result?.oppositions ?? []} />
@@ -472,6 +474,65 @@ function TrungHoaBoard() {
           className="mt-1 min-h-11 w-full rounded-md border border-line bg-ink px-3 text-sm text-bone outline-none"
         />
       </label>
+    </div>
+  );
+}
+
+function TrainingBoard() {
+  const goc: O[] = [
+    { ten: "my-drive/thu-muc", chu: "byte" },
+    { ten: "MANIFEST.json", chu: "goc" },
+  ];
+  const [ten, setTen] = useState("my-drive/thu-muc");
+  const [ket, setKet] = useState(() => thuXoa(goc, "my-drive/thu-muc"));
+  const nhip = giuNhip({ tocDoGo: null, tiLeXoa: null, ngatQuangGiay: null });
+  const tem = temMay(ket.lyDo, 1, "phiên này");
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Môi trường tập</h3>
+      <p className="mt-1 text-sm leading-relaxed text-bone">{BA.nangLuong}</p>
+      <p className="mt-1 text-sm leading-relaxed text-bone">{BA.suThat}</p>
+      <p className="mt-1 text-sm leading-relaxed text-yang">{BA.vatMang}</p>
+      <p className="mt-3 text-sm leading-relaxed text-mist">
+        Sổ tọa độ đã có: {SO_DANG_KY.repo} / {SO_DANG_KY.path}. Blob {SO_DANG_KY.blob.slice(0, 12)}. {SO_DANG_KY.dat}
+      </p>
+      <p className="mt-1 text-sm leading-relaxed text-mist">
+        Chữ vừa đưa: {NEO_CHU.viet}. File kml chưa đọc. Không ghi vào sổ đất.
+      </p>
+      <p className="mt-3 text-sm text-mist">Tầng đã nhận tên, chưa chạy trên bàn này: {TANG.join(" · ")}</p>
+      <ul className="mt-2 flex flex-col gap-1">
+        {CONG_CU.map((muc) => (
+          <li key={muc.ten} className="text-sm">
+            <span className={muc.coTrenBanNay ? "text-yang" : "text-yin"}>{muc.ten}</span>
+            <span className="text-mist"> — {muc.ghi}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-sm text-mist">
+        Nhịp thô để nguyên số. Không đổi thành nóng, vội hay do dự.
+        {nhip.nhanTamLy === null ? " Nhãn tâm lý: không có." : ""}
+      </p>
+      <form
+        className="mt-3 flex gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setKet(thuXoa(goc, ten));
+        }}
+      >
+        <input
+          value={ten}
+          onChange={(event) => setTen(event.target.value)}
+          aria-label="Tệp thử xóa trên nhánh"
+          className="min-h-11 min-w-0 flex-1 rounded-md border border-line bg-ink px-3 text-sm text-bone outline-none"
+        />
+        <button type="submit" className="min-h-11 rounded-md bg-yang px-3 text-sm text-ink">
+          Thử trên nhánh
+        </button>
+      </form>
+      <p className="mt-2 text-sm text-bone">{ket.lyDo}</p>
+      <p className="mt-1 text-sm text-mist">
+        Bản thật còn {ket.that.length} tệp. Nhánh còn {ket.nhanh.length}. {tem.canhBao}
+      </p>
     </div>
   );
 }
