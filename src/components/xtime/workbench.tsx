@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Fingerprint,
   Layers,
@@ -32,7 +32,23 @@ import {
   type Niem,
 } from "@/lib/adp/trunghoa";
 import { SAMPLES } from "@/lib/adp/samples";
-import { BA, CONG_CU, NEO_CHU, SO_DANG_KY, TANG, giuNhip, temMay, thuXoa, type O } from "@/lib/adp/training";
+import {
+  BA,
+  CONG_CU,
+  NEO_CHU,
+  SO_DANG_KY,
+  TANG,
+  docMauNhip,
+  gomNhip,
+  khoangNhip,
+  luuMauNhip,
+  temMay,
+  thuXoa,
+  xoaMauNhip,
+  type BaoNhip,
+  type NhipSuKien,
+  type O,
+} from "@/lib/adp/training";
 import { Taiji } from "@/components/xtime/mark";
 
 const ALL_SAMPLES = [
@@ -291,6 +307,7 @@ export function Workbench() {
           <StatusBanner result={result} blocked={blocked} phase={phase} />
           <TrungHoaBoard />
           <TrainingBoard />
+          <NhipBoard />
           <KhuanBoard />
           <NeedList needs={result?.needs ?? []} />
           <OppositionList pairs={result?.oppositions ?? []} />
@@ -485,7 +502,6 @@ function TrainingBoard() {
   ];
   const [ten, setTen] = useState("my-drive/thu-muc");
   const [ket, setKet] = useState(() => thuXoa(goc, "my-drive/thu-muc"));
-  const nhip = giuNhip({ tocDoGo: null, tiLeXoa: null, ngatQuangGiay: null });
   const tem = temMay(ket.lyDo, 1, "phiên này");
   return (
     <div className="rounded-md border border-line bg-panel px-3 py-3">
@@ -508,10 +524,7 @@ function TrainingBoard() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-mist">
-        Nhịp thô để nguyên số. Không đổi thành nóng, vội hay do dự.
-        {nhip.nhanTamLy === null ? " Nhãn tâm lý: không có." : ""}
-      </p>
+      <p className="mt-3 text-sm text-mist">Nhịp gõ đo ở mục dưới. Số để nguyên, không đổi thành tính cách.</p>
       <form
         className="mt-3 flex gap-2"
         onSubmit={(event) => {
@@ -532,6 +545,105 @@ function TrainingBoard() {
       <p className="mt-2 text-sm text-bone">{ket.lyDo}</p>
       <p className="mt-1 text-sm text-mist">
         Bản thật còn {ket.that.length} tệp. Nhánh còn {ket.nhanh.length}. {tem.canhBao}
+      </p>
+    </div>
+  );
+}
+
+function NhipBoard() {
+  const dangGiu = useRef(new Map<string, number>());
+  const loaiGiu = useRef(new Map<string, "giu" | "xoa">());
+  const lanTruoc = useRef<number | null>(null);
+  const [ds, setDs] = useState<NhipSuKien[]>([]);
+  const [mau, setMau] = useState<BaoNhip | null>(null);
+  const [cach, setCach] = useState<number | null>(null);
+  const [daSo, setDaSo] = useState(false);
+  const bao = gomNhip(ds);
+
+  useEffect(() => {
+    setMau(docMauNhip());
+  }, []);
+
+  function ms(so: number | null): string {
+    return so == null ? "chưa có" : `${Math.round(so)} ms`;
+  }
+
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Nhịp gõ</h3>
+      <p className="mt-1 text-sm leading-relaxed text-mist">
+        Giữ phím, khoảng giữa hai phím, số lần xóa. Chữ gõ không được lưu. Không kết luận người hay máy.
+      </p>
+      <textarea
+        aria-label="Ô đo nhịp gõ"
+        className="mt-3 min-h-24 w-full rounded-md border border-line bg-ink px-3 py-2 text-sm text-bone outline-none"
+        onKeyDown={(event) => {
+          if (event.repeat) return;
+          if (event.key === "Shift" || event.key === "Control" || event.key === "Alt" || event.key === "Meta") return;
+          const now = event.timeStamp;
+          const truoc = lanTruoc.current;
+          lanTruoc.current = now;
+          dangGiu.current.set(event.code, now);
+          loaiGiu.current.set(event.code, event.key === "Backspace" ? "xoa" : "giu");
+          if (truoc == null) return;
+          const them: NhipSuKien = { loai: "cach", ms: Math.max(0, now - truoc) };
+          setDs((cu) => [...cu, them].slice(-400));
+        }}
+        onKeyUp={(event) => {
+          const luc = dangGiu.current.get(event.code);
+          const loai = loaiGiu.current.get(event.code);
+          if (luc == null || loai == null) return;
+          dangGiu.current.delete(event.code);
+          loaiGiu.current.delete(event.code);
+          const them: NhipSuKien = { loai, ms: Math.max(0, event.timeStamp - luc) };
+          setDs((cu) => [...cu, them].slice(-400));
+        }}
+      />
+      <p className="mt-2 text-sm text-bone">
+        {bao.soPhim} phím · xóa {bao.soXoa}
+        {bao.tiLeXoa == null ? "" : ` · tỷ lệ xóa ${Math.round(bao.tiLeXoa * 100)}%`}
+      </p>
+      <p className="mt-1 text-sm text-mist">
+        Giữ giữa: {ms(bao.giuGiua)}. Cách giữa: {ms(bao.cachGiua)}.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="min-h-11 rounded-md bg-yang px-3 text-sm text-ink"
+          onClick={() => {
+            if (luuMauNhip(bao)) setMau(bao);
+          }}
+        >
+          Giữ mẫu
+        </button>
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-line px-3 text-sm text-bone"
+          onClick={() => {
+            const cu = mau ?? docMauNhip();
+            setMau(cu);
+            setDaSo(true);
+            setCach(cu ? khoangNhip(cu, bao) : null);
+          }}
+        >
+          So với mẫu
+        </button>
+        <button
+          type="button"
+          className="min-h-11 rounded-md border border-line px-3 text-sm text-mist"
+          onClick={() => {
+            xoaMauNhip();
+            setMau(null);
+            setCach(null);
+            setDaSo(false);
+          }}
+        >
+          Xóa mẫu
+        </button>
+      </div>
+      <p className="mt-2 text-sm text-mist">
+        Mẫu đã giữ: {mau ? `${mau.soPhim} phím` : "chưa có"}.
+        {daSo ? (cach == null ? " Khoảng cách: chưa đủ 4 phím mỗi bên." : ` Khoảng cách: ${Math.round(cach)}.`) : ""}
       </p>
     </div>
   );

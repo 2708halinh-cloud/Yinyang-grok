@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BA, NEO_CHU, SO_DANG_KY, giuNhip, tay, temMay, thuXoa } from "./training.ts";
+import { BA, NEO_CHU, SO_DANG_KY, giuNhip, gomNhip, khoangNhip, tay, temMay, thuXoa } from "./training.ts";
 
 test("ba thứ đứng riêng, không cực nào bị xóa trong câu", () => {
   assert.match(BA.vatMang, /Không cực nào bị xóa/);
@@ -30,6 +30,35 @@ test("xóa trên nhánh không đụng bản thật", () => {
   assert.equal(ket.that.length, 2);
   assert.equal(ket.nhanh.length, 1);
   assert.equal(ket.that[0]!.chu, "byte");
+});
+
+test("nhịp gõ là số, khoảng cách không thành danh tính", () => {
+  const mau = gomNhip([
+    { loai: "giu", ms: 80 },
+    { loai: "cach", ms: 120 },
+    { loai: "giu", ms: 90 },
+    { loai: "cach", ms: 100 },
+    { loai: "xoa", ms: 70 },
+    { loai: "cach", ms: 140 },
+    { loai: "giu", ms: 100 },
+  ]);
+  assert.equal(mau.soPhim, 4);
+  assert.equal(mau.soXoa, 1);
+  assert.equal(mau.tiLeXoa, 0.25);
+  assert.equal(mau.giuGiua, 85);
+  const khac = gomNhip([
+    { loai: "giu", ms: 200 },
+    { loai: "cach", ms: 300 },
+    { loai: "giu", ms: 180 },
+    { loai: "cach", ms: 280 },
+    { loai: "giu", ms: 220 },
+    { loai: "cach", ms: 260 },
+    { loai: "giu", ms: 190 },
+  ]);
+  const cach = khoangNhip(mau, khac);
+  assert.equal(typeof cach, "number");
+  assert.equal(khoangNhip(gomNhip([]), mau), null);
+  assert.equal("nhanTamLy" in mau, false);
 });
 
 test("tem máy không mượn chữ ký người, số dài không đi ra ngoài", () => {

@@ -124,3 +124,79 @@ export const TANG = [
   "Triển khai",
   "Giám sát",
 ] as const;
+
+export type LoaiNhip = "giu" | "cach" | "xoa";
+
+export interface NhipSuKien {
+  loai: LoaiNhip;
+  ms: number;
+}
+
+export interface BaoNhip {
+  soPhim: number;
+  soXoa: number;
+  tiLeXoa: number | null;
+  giuGiua: number | null;
+  cachGiua: number | null;
+}
+
+const NHIP_KEY = "xtime.nhip.v1";
+
+function giua(so: number[]): number | null {
+  if (so.length === 0) return null;
+  const xep = [...so].sort((a, b) => a - b);
+  const i = Math.floor(xep.length / 2);
+  if (xep.length % 2 === 1) return xep[i]!;
+  return (xep[i - 1]! + xep[i]!) / 2;
+}
+
+export function gomNhip(ds: NhipSuKien[]): BaoNhip {
+  const giu = ds.filter((muc) => muc.loai === "giu" || muc.loai === "xoa");
+  const xoa = ds.filter((muc) => muc.loai === "xoa");
+  const cach = ds.filter((muc) => muc.loai === "cach");
+  const soPhim = giu.length;
+  return {
+    soPhim,
+    soXoa: xoa.length,
+    tiLeXoa: soPhim === 0 ? null : xoa.length / soPhim,
+    giuGiua: giua(giu.map((muc) => muc.ms)),
+    cachGiua: giua(cach.map((muc) => muc.ms)),
+  };
+}
+
+export function khoangNhip(a: BaoNhip, b: BaoNhip): number | null {
+  if (a.soPhim < 4 || b.soPhim < 4) return null;
+  if (a.giuGiua == null || b.giuGiua == null || a.cachGiua == null || b.cachGiua == null) return null;
+  if (a.tiLeXoa == null || b.tiLeXoa == null) return null;
+  return Math.abs(a.giuGiua - b.giuGiua) + Math.abs(a.cachGiua - b.cachGiua) + Math.abs(a.tiLeXoa - b.tiLeXoa) * 100;
+}
+
+export function luuMauNhip(bao: BaoNhip): boolean {
+  if (typeof localStorage === "undefined") return false;
+  localStorage.setItem(NHIP_KEY, JSON.stringify(bao));
+  return true;
+}
+
+export function docMauNhip(): BaoNhip | null {
+  if (typeof localStorage === "undefined") return null;
+  const raw = localStorage.getItem(NHIP_KEY);
+  if (!raw) return null;
+  try {
+    const bao = JSON.parse(raw) as Partial<BaoNhip>;
+    if (typeof bao.soPhim !== "number") return null;
+    return {
+      soPhim: bao.soPhim,
+      soXoa: typeof bao.soXoa === "number" ? bao.soXoa : 0,
+      tiLeXoa: typeof bao.tiLeXoa === "number" ? bao.tiLeXoa : null,
+      giuGiua: typeof bao.giuGiua === "number" ? bao.giuGiua : null,
+      cachGiua: typeof bao.cachGiua === "number" ? bao.cachGiua : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function xoaMauNhip(): void {
+  if (typeof localStorage === "undefined") return;
+  localStorage.removeItem(NHIP_KEY);
+}
