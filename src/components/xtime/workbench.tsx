@@ -49,6 +49,7 @@ import {
   type NhipSuKien,
   type O,
 } from "@/lib/adp/training";
+import { HANH_TINH_DOC, dinhTuyen } from "@/lib/adp/starmap";
 import { Taiji } from "@/components/xtime/mark";
 
 const ALL_SAMPLES = [
@@ -308,6 +309,7 @@ export function Workbench() {
           <TrungHoaBoard />
           <TrainingBoard />
           <NhipBoard />
+          <StarBoard />
           <KhuanBoard />
           <NeedList needs={result?.needs ?? []} />
           <OppositionList pairs={result?.oppositions ?? []} />
@@ -546,6 +548,24 @@ function TrainingBoard() {
       <p className="mt-1 text-sm text-mist">
         Bản thật còn {ket.that.length} tệp. Nhánh còn {ket.nhanh.length}. {tem.canhBao}
       </p>
+    </div>
+  );
+}
+
+function StarBoard() {
+  const hanh = HANH_TINH_DOC[0]!;
+  const ket = dinhTuyen(hanh, "Get-ComputerInfo");
+  return (
+    <div className="rounded-md border border-line bg-panel px-3 py-3">
+      <h3 className="text-lg text-bone">Bản đồ sao</h3>
+      <ul className="mt-2 flex flex-col gap-1">
+        {HANH_TINH_DOC.map((muc) => (
+          <li key={muc.deviceId} className="text-sm text-bone">
+            {muc.ten} · {muc.trangThai} · {muc.thayLanCuoi}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-sm text-yin">{ket.ly}</p>
     </div>
   );
 }
