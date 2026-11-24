@@ -12,9 +12,11 @@ test("lời từ chối không có biên nhận thì bị chặn", () => {
   assert.equal(chan.qua, false);
 });
 
-test("biên nhận đủ bốn mục thì qua, mẫu thao tác của người thì qua", () => {
-  const viec = chanDauRa("đã ghi", { lenh: "git push", file: "CHAN_DAU_RA.md", hash: "abc", gio: "2026-11-23T07:36:00Z" });
-  assert.equal(viec.qua, true);
+test("đoạn văn bọc biên nhận thì bị chặn, bốn dòng thì qua", () => {
+  const bon = "lệnh: git push\ntệp: src/lib/adp/chandara.ts\nhash: abc\ngiờ: 2026-11-24T11:06:00Z";
+  assert.equal(chanDauRa(bon, null).qua, true);
+  assert.equal(chanDauRa(`Đặc tả giải thích.\n${bon}`, null).qua, false);
+  assert.equal(chanDauRa("đã ghi", { lenh: "git push", file: "CHAN_DAU_RA.md", hash: "abc", gio: "2026-11-23T07:36:00Z" }).qua, false);
   const nguoi = chanDauRa("Thao tác em cần làm là thu hồi khóa. Tuyệt đối không dán khóa. Vì lộ thì sẽ bị lấy.", null);
   assert.equal(nguoi.qua, true);
 });
