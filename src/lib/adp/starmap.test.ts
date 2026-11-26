@@ -7,7 +7,8 @@ test("máy đang mở thì nhận lệnh, localhost thì không", () => {
   const may = HANH_TINH_DOC[0]!;
   assert.equal(may.ten, "Super-AI-Flatform");
   assert.equal(may.tenTruoc, "Ten-May-Moi");
-  assert.equal(may.machineGuid, "258f867b-3096-4bdd-a526-8e1452c0c550");
+  assert.equal(may.mach, "B560M H V2");
+  assert.equal(may.bios, "American Megatrends International, LLC. F5b");
   assert.equal(may.uuidPhanCung, null);
   assert.equal(may.duong?.["W:\\"], false);
   assert.equal(dinhTuyen(may, "hostname").gui, true);

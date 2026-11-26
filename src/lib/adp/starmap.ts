@@ -9,6 +9,10 @@ export interface HanhTinh {
   computerName?: string;
   user?: string;
   machineGuid?: string;
+  hang?: string;
+  mach?: string;
+  ho?: string;
+  bios?: string;
   o?: string[];
   duong?: Record<string, boolean>;
 }
@@ -22,6 +26,10 @@ export const HANH_TINH_DOC: HanhTinh[] = [
     trangThai: "online",
     user: "2708h",
     machineGuid: "258f867b-3096-4bdd-a526-8e1452c0c550",
+    hang: "Gigabyte Technology Co., Ltd.",
+    mach: "B560M H V2",
+    ho: "B560 MB",
+    bios: "American Megatrends International, LLC. F5b",
     thayLanCuoi: "online, đọc 2026-11-26T00:19:00Z",
     uuidPhanCung: null,
     o: ["C", "D", "E", "F", "G", "H", "I"],
