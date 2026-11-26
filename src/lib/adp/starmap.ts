@@ -3,7 +3,7 @@ export interface HanhTinh {
   deviceId: string;
   trangThai: "online" | "offline";
   thayLanCuoi: string;
-  uuidPhanCung: null;
+  uuidPhanCung: string | null;
   docLuc: string;
   tenTruoc?: string;
   computerName?: string;
@@ -30,8 +30,8 @@ export const HANH_TINH_DOC: HanhTinh[] = [
     mach: "B560M H V2",
     ho: "B560 MB",
     bios: "American Megatrends International, LLC. F5b",
-    thayLanCuoi: "online, đọc 2026-11-26T00:19:00Z",
-    uuidPhanCung: null,
+    thayLanCuoi: "online, CIM 2026-11-26T23:45:56Z",
+    uuidPhanCung: "03000200-0400-0500-0006-000700080009",
     o: ["C", "D", "E", "F", "G", "H", "I"],
     duong: {
       "C:\\Users\\2708h": true,

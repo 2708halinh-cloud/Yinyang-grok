@@ -9,7 +9,7 @@ test("máy đang mở thì nhận lệnh, localhost thì không", () => {
   assert.equal(may.tenTruoc, "Ten-May-Moi");
   assert.equal(may.mach, "B560M H V2");
   assert.equal(may.bios, "American Megatrends International, LLC. F5b");
-  assert.equal(may.uuidPhanCung, null);
+  assert.equal(may.uuidPhanCung, "03000200-0400-0500-0006-000700080009");
   assert.equal(may.duong?.["W:\\"], false);
   assert.equal(dinhTuyen(may, "hostname").gui, true);
   const local = HANH_TINH_DOC[1]!;
