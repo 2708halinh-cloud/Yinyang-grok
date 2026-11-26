@@ -5,24 +5,41 @@ export interface HanhTinh {
   thayLanCuoi: string;
   uuidPhanCung: null;
   docLuc: string;
+  tenTruoc?: string;
+  computerName?: string;
+  user?: string;
+  machineGuid?: string;
+  o?: string[];
+  duong?: Record<string, boolean>;
 }
 
 export const HANH_TINH_DOC: HanhTinh[] = [
   {
-    ten: "Ten-May-Moi",
+    ten: "Super-AI-Flatform",
+    tenTruoc: "Ten-May-Moi",
+    computerName: "SUPER-AI-FLATFO",
     deviceId: "55a94230-b443-4932-a0f5-4cad7c09f815",
-    trangThai: "offline",
-    thayLanCuoi: "5 giờ trước lần đọc",
+    trangThai: "online",
+    user: "2708h",
+    machineGuid: "258f867b-3096-4bdd-a526-8e1452c0c550",
+    thayLanCuoi: "online, đọc 2026-11-26T00:19:00Z",
     uuidPhanCung: null,
-    docLuc: "2026-11-24T11:03:53Z",
+    o: ["C", "D", "E", "F", "G", "H", "I"],
+    duong: {
+      "C:\\Users\\2708h": true,
+      "G:\\OS_Workspace": true,
+      "D:\\": true,
+      "W:\\": false,
+    },
+    docLuc: "2026-11-26T00:19:00Z",
   },
   {
     ten: "localhost",
     deviceId: "0533a270-1d4d-42bb-83be-9b9fdcb2182f",
     trangThai: "offline",
-    thayLanCuoi: "6 giờ trước lần đọc",
+    thayLanCuoi: "43 giờ trước lần đọc",
     uuidPhanCung: null,
-    docLuc: "2026-11-24T11:03:53Z",
+    docLuc: "2026-11-26T00:19:00Z",
   },
 ];
 

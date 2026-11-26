@@ -2,12 +2,17 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { HANH_TINH_DOC, dinhTuyen, giuSo } from "./starmap.ts";
 
-test("hai thiết bị đọc được đều offline, lệnh không gửi", () => {
+test("máy đang mở thì nhận lệnh, localhost thì không", () => {
   assert.equal(HANH_TINH_DOC.length, 2);
-  assert.equal(HANH_TINH_DOC.every((muc) => muc.trangThai === "offline"), true);
-  const ket = dinhTuyen(HANH_TINH_DOC[0]!, "Get-ComputerInfo");
-  assert.equal(ket.gui, false);
-  assert.match(ket.ly, /không gửi/);
+  const may = HANH_TINH_DOC[0]!;
+  assert.equal(may.ten, "Super-AI-Flatform");
+  assert.equal(may.tenTruoc, "Ten-May-Moi");
+  assert.equal(may.machineGuid, "258f867b-3096-4bdd-a526-8e1452c0c550");
+  assert.equal(may.uuidPhanCung, null);
+  assert.equal(may.duong?.["W:\\"], false);
+  assert.equal(dinhTuyen(may, "hostname").gui, true);
+  const local = HANH_TINH_DOC[1]!;
+  assert.equal(dinhTuyen(local, "hostname").gui, false);
 });
 
 test("số thô không mang nhãn cảm giác", () => {
